@@ -20,8 +20,8 @@ model User {
   updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
   firstName     String   @map("first_name")
   lastName      String   @map("last_name")
-  username      String   @unique
-  phoneNumber   Int      @map("phone_number") @db.SmallInt
+  userName      String   @unique @map("user_name")
+  phoneNumber   String   @map("phone_number")
   email         String   @unique
   passwordHash  String   @map("password_hash")
 
