@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { IsPhoneNumber, IsString } from 'class-validator';
 
-export class UserSignupDTO {
+export class signupDto {
   @IsString()
   userName: string;
 

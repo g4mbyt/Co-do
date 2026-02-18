@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { IsEmail, IsString, IsNumber, MinLength } from 'class-validator';
 
 export class CreateUserDto {
@@ -9,7 +8,7 @@ export class CreateUserDto {
   lastName: string;
 
   @IsString()
-  @MinLength(3)
+  @MinLength(5)
   userName: string;
 
   @IsEmail()

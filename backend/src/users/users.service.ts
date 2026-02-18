@@ -6,10 +6,10 @@ import { CreateUserDto } from './dto/createUserDto';
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: DatabaseService) {}
-  async findUserByName(userName: string): Promise<User> {
+  async findUserByEmail(email: string): Promise<User> {
     const user = await this.prisma.user.findUnique({
       where: {
-        userName,
+        email,
       },
     });
     if (!user) {
@@ -18,8 +18,8 @@ export class UsersService {
     return user;
   }
 
-  async createUser(userInfo: CreateUserDto): Promise<void> {
-    await this.prisma.user.create({
+  async createUser(userInfo: CreateUserDto): Promise<User> {
+    return await this.prisma.user.create({
       data: userInfo,
     });
   }
