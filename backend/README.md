@@ -1,98 +1,181 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Co-do Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A NestJS backend for Co-do, built with Prisma, PostgreSQL, and JWT-based authentication.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tech Stack
 
-## Description
+- **NestJS 11** – Node.js framework
+- **Prisma** – Type-safe ORM with PostgreSQL
+- **argon2** – Password hashing
+- **JWT** – Token-based authentication
+- **class-validator** – DTO validation
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Prerequisites
 
-## Project setup
+- Node.js 18+
+- PostgreSQL (or a hosted Postgres, e.g. Supabase)
 
-```bash
-$ npm install
+## Setup
+
+1. **Clone and install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+2. **Configure environment variables**
+
+   Create a `.env` file in the project root with:
+
+   ```env
+   # Database – direct connection (used for Prisma migrations)
+   DATABASE_URL="postgresql://user:password@host:5432/postgres"
+
+   # Database – connection pooling (used at runtime)
+   DATABASE_POOLING="postgresql://user:password@host:6543/postgres?pgbouncer=true"
+
+   # JWT signing secret (use a strong, random value in production)
+   JWT_SECRET="your-secret-key"
+
+   # Optional – server port (default: 3000)
+   PORT=3000
+   ```
+
+   | Variable           | Required | Description                                                                |
+   | ------------------ | -------- | -------------------------------------------------------------------------- |
+   | `DATABASE_URL`     | Yes      | Direct Postgres connection for migrations (`prisma migrate`)               |
+   | `DATABASE_POOLING` | Yes      | Pooled connection for the app runtime (e.g. PgBouncer when using Supabase) |
+   | `JWT_SECRET`       | Yes      | Secret used to sign and verify JWT access tokens                           |
+   | `PORT`             | No       | HTTP port (default: `3000`)                                                |
+
+3. **Run database migrations**
+
+   ```bash
+   npx prisma migrate deploy
+   ```
+
+4. **Start the server**
+
+   ```bash
+   npm run start:dev
+   ```
+
+   The API will be available at `http://localhost:3000`.
+
+## Environment Variables Summary
+
+| Variable           | Purpose                                  |
+| ------------------ | ---------------------------------------- |
+| `DATABASE_URL`     | Prisma migrations (direct DB connection) |
+| `DATABASE_POOLING` | App runtime (connection pooling)         |
+| `JWT_SECRET`       | Signing secret for JWT access tokens     |
+| `PORT`             | Server port (default: `3000`)            |
+
+## Authentication
+
+### Overview
+
+Authentication is JWT-based. Users sign up or log in and receive an `accessToken`, which they must send as a Bearer token on protected endpoints.
+
+### Endpoints
+
+| Method | Endpoint       | Auth required | Description                                     |
+| ------ | -------------- | ------------- | ----------------------------------------------- |
+| `POST` | `/auth/signup` | No            | Register a new user and receive an access token |
+| `POST` | `/auth/login`  | No            | Authenticate and receive an access token        |
+| `GET`  | `/auth/me`     | Yes           | Return the current user info from the token     |
+
+### Sign Up
+
+**Request body:**
+
+```json
+{
+  "userName": "johndoe",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john@example.com",
+  "password": "securePassword123",
+  "passwordConfirmation": "securePassword123",
+  "phoneNumber": "+36123456789"
+}
 ```
 
-## Compile and run the project
+**Response:**
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```json
+{
+  "id": "uuid",
+  "email": "john@example.com",
+  "accessToken": "eyJhbGciOiJIUzI1NiIs..."
+}
 ```
 
-## Run tests
+### Login
 
-```bash
-# unit tests
-$ npm run test
+**Request body:**
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```json
+{
+  "email": "john@example.com",
+  "passwordAttempt": "securePassword123"
+}
 ```
 
-## Deployment
+**Response:** Same shape as sign up (id, email, accessToken).
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### Protected Routes
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+To access protected routes (e.g. `GET /auth/me`), include the JWT in the `Authorization` header:
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+```
+Authorization: Bearer <accessToken>
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Example with `curl`:
 
-## Resources
+```bash
+curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" http://localhost:3000/auth/me
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+**Response:**
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```json
+{
+  "userId": "uuid",
+  "email": "john@example.com"
+}
+```
 
-## Support
+### Flow
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+1. **Sign up / Login** – The service validates credentials, hashes passwords with argon2 (signup), and issues a JWT with `sub` (user id) and `email`. Tokens expire after 1 hour.
+2. **Protected routes** – The `AuthGuard` reads the Bearer token, verifies it with `JWT_SECRET`, and attaches `userId` and `email` to `request.user`. Invalid or missing tokens result in `401 Unauthorized`.
 
-## Stay in touch
+### Security Details
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- Passwords are hashed with **argon2** before storage.
+- JWT payload: `{ sub: userId, email }`.
+- JWT expiry: **1 hour** (`signOptions.expiresIn` in `auth.module.ts`).
 
-## License
+## Scripts
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+| Command              | Description            |
+| -------------------- | ---------------------- |
+| `npm run start`      | Start the server       |
+| `npm run start:dev`  | Start in watch mode    |
+| `npm run start:prod` | Start production build |
+| `npm run build`      | Build for production   |
+| `npm run lint`       | Run ESLint             |
+| `npm run test`       | Run unit tests         |
+
+## Project Structure
+
+```
+src/
+├── auth/           # Auth controller, service, guards, DTOs
+├── users/          # Users service and DTOs
+├── database/       # Prisma database service
+├── app.module.ts
+└── main.ts
+```
